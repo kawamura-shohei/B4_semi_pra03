@@ -1,51 +1,39 @@
 from osgeo import gdal, gdalconst, gdal_array
+import cv2
 import numpy as np
 
+
+# メイン関数
 def main():
     infile_path = "../../src03/AtamiDosya_Difference_Building.tif" # 入力画像パス
     outfile_path = "../../src03/result.tif" # 出力画像パス
-
-    # tiff読み込み
-    img = read_geotiff(infile_path)
-
-    # なんらかの処理
-    img_b1_binarized = binarization(img)
-
-    # tiff書き込み
-    write_geotiff(outfile_path, img, img_b1_binarized)
-
-
-# 1つのバンドを二値化をする関数
-def binarization(src):
-    threshold = 3 # 閾値
-    img_gray = src.GetRasterBand(1).ReadAsArray()
-    img_bin = (img_gray > threshold) * 255
-
-    return img_bin
+    img = read_geotiff(infile_path)  # tiff画像読み込み
+    write_geotiff(infile_path, outfile_path, img)
 
 
 # tiff画像読み込み関数
 def read_geotiff(path):
-    # 入力画像読み込み
-    src = gdal.Open(path)
+    # 入力画像読み込み（GeotiffでOK）
+    img = cv2.imread(path, cv2.IMREAD_COLOR)
 
-    return src
-
+    return img
 
 # tiff画像書き込み関数
-def write_geotiff(outfile_path, src, edit_b1):
+def write_geotiff(infile_path, outfile_path, img):
+    src = gdal.Open(infile_path)
     # X,Yのサイズとバンド数を求める
     xsize = src.RasterXSize
     ysize = src.RasterYSize
     band = src.RasterCount
 
-    # バンドを格納(本実験では1つしかない)
-    b1 = edit_b1
-    #b1 = src.GetRasterBand(1).ReadAsArray() # 第１バンド numpy arrayに格納
+    # 第1バンド
+    x = src.ReadAsArray()
+    # b1 = src.GetRasterBand(1).ReadAsArray() # 第１バンド numpy array
 
     # データタイプ番号
     dtype = src.GetRasterBand(1).DataType # 型番号 (ex: 6 -> numpy.float32)
     gdal_array.GDALTypeCodeToNumericTypeCode(dtype) # 型番号 -> 型名 変換
+    # dtype = gdal.GDT_Float32
 
     # 出力画像
     output = gdal.GetDriverByName('GTiff').Create(outfile_path, xsize, ysize, band, dtype)
@@ -55,7 +43,11 @@ def write_geotiff(outfile_path, src, edit_b1):
 
     # 空間情報を結合
     output.SetProjection(src.GetProjection())
-    output.GetRasterBand(1).WriteArray(b1)
+    output.WriteArray(x)
+    # output.GetRasterBand(1).WriteArray(b1)
+    # output.GetRasterBand(2).WriteArray(b2)
+    # output.GetRasterBand(3).WriteArray(b3)
+    # output.GetRasterBand(4).WriteArray(b4)
     output.FlushCache()
 
 
