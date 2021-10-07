@@ -12,32 +12,26 @@ def main():
 
     # 1バンドをNumpyに格納
     img_b1_origin = img.GetRasterBand(1).ReadAsArray()
-    # 二値化
-    img_b1_binarized = binarization(img_b1_origin)
+
+    img_b1_origin = (np.where(img_b1_origin < -16.617432, -16.617432, img_b1_origin))
+    print(np.amin(img_b1_origin))
+
     # Numpy -> Pillow の変換
-    img_b1_binarized_PIL = Image.fromarray(img_b1_binarized)
+    img_b1_PIL_origin = Image.fromarray(img_b1_origin)
     # Pillow -> OpenCV の変換
-    img_b1_binarized_CV = pil2cv(img_b1_binarized_PIL)
+    img_b1_CV_origin = pil2cv(img_b1_PIL_origin)
 
     # 画像の確認
-    cv2.imshow("Binarized", img_b1_binarized_CV)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # cv2.imshow("clahe", img_b1_CV_origin)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
     # OpenCV -> Pillow の変換
-    img_b1_PIL = cv2pil(img_b1_binarized_CV)
+    img_b1_PIL_treated = cv2pil(img_b1_CV_origin)
     # Pillow -> Numpy の変換
-    img_b1_treated = np.array(img_b1_PIL)
+    img_b1_treated = np.array(img_b1_PIL_treated)
     # tiff書き込み
     write_geotiff(outfile_path, img, img_b1_treated)
-
-
-# 1つのバンドを二値化する関数
-def binarization(src_b1):
-    threshold = 3 # 閾値
-    img_bin = (src_b1> threshold) * 255
-
-    return img_bin
 
 
 # Pillow -> OpenCV の変換を行う関数
