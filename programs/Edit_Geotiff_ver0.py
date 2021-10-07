@@ -9,7 +9,8 @@ def main():
     img = read_geotiff(infile_path)
 
     # なんらかの処理
-    img_b1_binarized = binarization(img)
+    img_b1_binarized = binarization(img)    #二値化
+    
 
     # tiff書き込み
     write_geotiff(outfile_path, img, img_b1_binarized)
