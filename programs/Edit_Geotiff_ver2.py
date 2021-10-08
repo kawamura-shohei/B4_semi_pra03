@@ -4,30 +4,35 @@ import numpy as np
 import cv2
 
 def main():
-    infile_path = "../../src03/AtamiDosya_Difference_Building.tif" # 入力画像パス
-    outfile_path = "../../src03/result.tif" # 出力画像パス
+    infile_path = "../../src03/result_Numpy.tif" # 入力画像パス
+    outfile_path = "../../src03/result_Binarized.tif" # 出力画像パス
 
     # tiff読み込み
     img = read_geotiff(infile_path)
 
     # 1バンドをNumpyに格納
     img_b1_origin = img.GetRasterBand(1).ReadAsArray()
-
-    img_b1_origin = (np.where(img_b1_origin < -16.617432, -16.617432, img_b1_origin))
-    print(np.amin(img_b1_origin))
-
     # Numpy -> Pillow の変換
     img_b1_PIL_origin = Image.fromarray(img_b1_origin)
     # Pillow -> OpenCV の変換
     img_b1_CV_origin = pil2cv(img_b1_PIL_origin)
 
+    # コントラスト強調
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    img_clahe = clahe.apply(img_b1_CV_origin)
+    
+    # 二値化
+    ret, img_b1_Bin = cv2.threshold(img_clahe, 170, 255, cv2.THRESH_BINARY)
+    # ret, img_b1_Bin = cv2.threshold(img_clahe, 0, 255, cv2.THRESH_OTSU)
+    # print("ret: {}".format(ret))
+
     # 画像の確認
-    # cv2.imshow("clahe", img_b1_CV_origin)
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
+    cv2.imshow("sample", img_b1_Bin)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
     # OpenCV -> Pillow の変換
-    img_b1_PIL_treated = cv2pil(img_b1_CV_origin)
+    img_b1_PIL_treated = cv2pil(img_b1_Bin)
     # Pillow -> Numpy の変換
     img_b1_treated = np.array(img_b1_PIL_treated)
     # tiff書き込み

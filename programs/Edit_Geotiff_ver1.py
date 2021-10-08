@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 def main():
-    infile_path = "../../src03/AtamiDosya_Difference_Building.tif" # 入力画像パス
+    infile_path = "../../src03/AtamiDosyaMap_Difference.tif" # 入力画像パス
     outfile_path = "../../src03/result.tif" # 出力画像パス
 
     # tiff読み込み
